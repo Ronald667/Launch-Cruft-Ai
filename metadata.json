@@ -1,0 +1,6 @@
+{
+  "name": "LaunchCraft AI - Website Builder",
+  "description": "AI-powered drag-and-drop website builder with customizable templates, real-time preview, AI component generator, and clean code export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
