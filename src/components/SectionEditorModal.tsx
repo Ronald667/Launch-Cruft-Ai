@@ -28,7 +28,9 @@ export const SectionEditorModal: React.FC<SectionEditorModalProps> = ({
       <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl text-white">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/50">
           <div className="flex items-center gap-2">
-            <span className="text-xl">✏️</span>
+            <button onClick={onClose} className="mr-1 text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold">
+              ← Back
+            </button>
             <h3 className="font-bold text-lg">Edit Section: {section.name}</h3>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-xl transition-colors">
@@ -118,17 +120,32 @@ export const SectionEditorModal: React.FC<SectionEditorModalProps> = ({
             </div>
           )}
 
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Background Theme</label>
-            <select
-              value={formData.backgroundColor || "white"}
-              onChange={(e: any) => setFormData({ ...formData, backgroundColor: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="white">Clean White</option>
-              <option value="slate">Light Slate</option>
-              <option value="dark">Dark Slate</option>
-            </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Background Theme</label>
+              <select
+                value={formData.backgroundColor || "white"}
+                onChange={(e: any) => setFormData({ ...formData, backgroundColor: e.target.value })}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="white">Clean White</option>
+                <option value="slate">Light Slate</option>
+                <option value="dark">Dark Slate</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Entrance Animation</label>
+              <select
+                value={formData.animation || "none"}
+                onChange={(e: any) => setFormData({ ...formData, animation: e.target.value })}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="none">None (Default)</option>
+                <option value="fade-in">Fade In</option>
+                <option value="slide-up">Slide Up</option>
+                <option value="zoom">Zoom</option>
+              </select>
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">

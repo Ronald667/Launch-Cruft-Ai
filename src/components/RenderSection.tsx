@@ -44,8 +44,13 @@ export const RenderSection: React.FC<RenderSectionProps> = ({
     ? "bg-slate-50 text-slate-900" 
     : isDarkMode ? "bg-slate-900 text-slate-100" : "bg-white text-slate-900";
 
+  const animationClass = 
+    section.animation === "fade-in" ? "opacity-95 transition-opacity duration-700" :
+    section.animation === "slide-up" ? "transform transition-transform duration-700" :
+    section.animation === "zoom" ? "transform transition-all duration-700" : "";
+
   return (
-    <div className={`group relative py-20 px-6 md:px-12 transition-all border border-transparent hover:border-indigo-500/40 ${bgClass}`}>
+    <div className={`group relative py-20 px-6 md:px-12 transition-all border border-transparent hover:border-indigo-500/40 ${bgClass} ${animationClass}`}>
       {/* Floating Action Toolbar on Hover */}
       <div className="absolute right-4 top-4 z-20 hidden group-hover:flex items-center gap-1 bg-slate-900/90 backdrop-blur-md text-white px-3 py-1.5 rounded-xl shadow-xl border border-slate-700">
         <button onClick={onEdit} title="Edit Section" className="p-1.5 hover:bg-indigo-600 rounded-lg transition-colors">
@@ -432,7 +437,7 @@ export const RenderSection: React.FC<RenderSectionProps> = ({
             <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-slate-800/50 text-xs">
               <p>&copy; {new Date().getFullYear()} {section.title}. All rights reserved.</p>
               <p className="flex items-center gap-1 mt-4 md:mt-0">
-                Built with <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> <span className="text-white font-semibold">LaunchCraft AI</span>
+                Built with <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> <span className="text-white font-semibold">Web Design Pro</span>
               </p>
             </div>
           </div>

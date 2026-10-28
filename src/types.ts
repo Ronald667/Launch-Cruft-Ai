@@ -42,6 +42,7 @@ export interface WebsiteSection {
   imageUrl?: string;
   items?: SectionItem[];
   backgroundColor?: "white" | "slate" | "zinc" | "dark";
+  animation?: "none" | "fade-in" | "slide-up" | "zoom";
 }
 
 export interface PageData {

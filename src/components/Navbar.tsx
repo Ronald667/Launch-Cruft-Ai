@@ -2,7 +2,7 @@ import React from "react";
 import { WebsiteProject } from "../types";
 import { 
   Layout, Sparkles, Code, Globe, Monitor, Tablet, Smartphone, 
-  Layers, Palette, Search, Building2, Rocket, Eye
+  Layers, Palette, Search, Building2, Rocket, Eye, Undo2, Redo2, FolderOpen, Wand2
 } from "lucide-react";
 
 interface NavbarProps {
@@ -10,13 +10,19 @@ interface NavbarProps {
   deviceView: "desktop" | "tablet" | "mobile";
   setDeviceView: (view: "desktop" | "tablet" | "mobile") => void;
   onOpenTemplates: () => void;
+  onOpenProjects: () => void;
   onOpenAiAssistant: () => void;
   onOpenBusinessGenerator: () => void;
   onOpenSeoAssistant: () => void;
+  onOpenSmartLayout: () => void;
   onOpenExport: () => void;
   onOpenPublish: () => void;
   onOpenPreview: () => void;
   onRunAudit: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -24,13 +30,19 @@ export const Navbar: React.FC<NavbarProps> = ({
   deviceView,
   setDeviceView,
   onOpenTemplates,
+  onOpenProjects,
   onOpenAiAssistant,
   onOpenBusinessGenerator,
   onOpenSeoAssistant,
+  onOpenSmartLayout,
   onOpenExport,
   onOpenPublish,
   onOpenPreview,
   onRunAudit,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
 }) => {
   return (
     <header className="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between text-white z-40 relative select-none">
@@ -42,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
           <div>
             <span className="font-extrabold tracking-tight text-lg bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
-              LaunchCraft AI
+              Web Design Pro
             </span>
             <div className="text-[10px] text-indigo-400 font-medium tracking-wide">
               {project.theme.siteName || "Untitled Project"}
@@ -50,14 +62,42 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        <div className="h-6 w-[1px] bg-slate-800 mx-2 hidden md:block" />
+        <div className="h-6 w-[1px] bg-slate-800 mx-1 hidden md:block" />
+
+        {/* Undo / Redo buttons */}
+        <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <button
+            onClick={onUndo}
+            disabled={!canUndo}
+            title="Undo (Ctrl+Z)"
+            className={`p-1.5 rounded-lg text-xs transition-colors ${canUndo ? "hover:bg-slate-800 text-slate-200" : "text-slate-600 cursor-not-allowed"}`}
+          >
+            <Undo2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onRedo}
+            disabled={!canRedo}
+            title="Redo (Ctrl+Y)"
+            className={`p-1.5 rounded-lg text-xs transition-colors ${canRedo ? "hover:bg-slate-800 text-slate-200" : "text-slate-600 cursor-not-allowed"}`}
+          >
+            <Redo2 className="w-4 h-4" />
+          </button>
+        </div>
+
+        <button 
+          onClick={onOpenProjects}
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium transition-colors border border-slate-700 text-indigo-300"
+        >
+          <FolderOpen className="w-3.5 h-3.5 text-indigo-400" />
+          My Projects
+        </button>
 
         <button 
           onClick={onOpenTemplates}
           className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium transition-colors border border-slate-700"
         >
           <Layers className="w-3.5 h-3.5 text-indigo-400" />
-          Samples & Templates
+          Templates
         </button>
 
         <button 
@@ -102,6 +142,15 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <Eye className="w-4 h-4 text-indigo-400" />
           <span className="hidden sm:inline">Preview</span>
+        </button>
+
+        <button 
+          onClick={onOpenSmartLayout}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium transition-colors border border-slate-700 text-purple-300"
+          title="AI Smart Layout Engine"
+        >
+          <Wand2 className="w-4 h-4 text-purple-400" />
+          <span className="hidden md:inline">AI Layout</span>
         </button>
 
         <button 

@@ -332,6 +332,60 @@ app.post("/api/ai/generate-image", async (req, res) => {
   }
 });
 
+// NEW: AI Smart Layout Engine endpoint
+app.post("/api/ai/smart-layout", async (req, res) => {
+  try {
+    const { sections } = req.body;
+    if (!sections || !Array.isArray(sections)) {
+      return res.status(400).json({ error: "Sections array is required" });
+    }
+
+    if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey === "dummy-key") {
+      const sorted = [...sections].sort((a, b) => {
+        const order: Record<string, number> = { hero: 1, stats: 2, features: 3, gallery: 4, testimonials: 5, pricing: 6, faq: 7, team: 8, contact: 9, cta: 10, footer: 11 };
+        return (order[a.type] || 99) - (order[b.type] || 99);
+      });
+      return res.json({
+        rationale: "Optimized for maximum conversion and engagement: Hero introduces the value proposition, followed by trust metrics and core features, social proof (testimonials), pricing, FAQ to clear objections, and a strong final CTA.",
+        reorderedSections: sorted
+      });
+    }
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: `Analyze these website sections and reorder them for optimal conversion rate and user engagement flow (Hero -> Social Proof/Stats -> Features -> Testimonials -> Pricing -> FAQ -> CTA -> Footer):
+      ${JSON.stringify(sections)}
+      Return a JSON object with:
+      {
+        "rationale": "short explanation of the layout improvement",
+        "reorderedIds": ["array of section ids in the new optimized order"]
+      }
+      Return ONLY valid JSON.`,
+      config: {
+        responseMimeType: "application/json",
+      },
+    });
+
+    const cleaned = (response.text || "{}").replace(/```json/g, "").replace(/```/g, "").trim();
+    const result = JSON.parse(cleaned);
+    
+    const idMap = new Map(sections.map((s: any) => [s.id, s]));
+    const reorderedSections = (result.reorderedIds || [])
+      .map((id: string) => idMap.get(id))
+      .filter(Boolean);
+    
+    const missed = sections.filter((s: any) => !reorderedSections.some((rs: any) => rs.id === s.id));
+
+    res.json({
+      rationale: result.rationale || "Optimized section flow for peak conversion and engagement.",
+      reorderedSections: [...reorderedSections, ...missed]
+    });
+  } catch (error: any) {
+    console.error("Smart Layout Error:", error);
+    res.status(500).json({ error: error.message || "Failed to generate smart layout" });
+  }
+});
+
 async function startServer() {
   const isProduction = process.env.NODE_ENV === "production";
 

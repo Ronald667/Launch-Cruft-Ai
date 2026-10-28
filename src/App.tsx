@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { WebsiteProject, WebsiteSection, SectionType, ThemeSettings } from "./types";
 import { TEMPLATES } from "./data/templates";
 import { Navbar } from "./components/Navbar";
@@ -8,14 +8,74 @@ import { SectionEditorModal } from "./components/SectionEditorModal";
 import { AIAssistantModal } from "./components/AIAssistantModal";
 import { BusinessGeneratorModal } from "./components/BusinessGeneratorModal";
 import { SeoAssistantModal } from "./components/SeoAssistantModal";
+import { SmartLayoutModal } from "./components/SmartLayoutModal";
 import { TemplatesModal } from "./components/TemplatesModal";
+import { ProjectsModal } from "./components/ProjectsModal";
 import { CodeExportModal } from "./components/CodeExportModal";
 import { PublishModal } from "./components/PublishModal";
 import { PreviewModal } from "./components/PreviewModal";
 import { Sparkles, X, Check } from "lucide-react";
 
 export default function App() {
-  const [project, setProject] = useState<WebsiteProject>(TEMPLATES[0].project);
+  // Saved Projects List State
+  const [savedProjects, setSavedProjects] = useState<WebsiteProject[]>([
+    TEMPLATES[0].project,
+    TEMPLATES[1].project,
+    TEMPLATES[2].project,
+  ]);
+
+  // History Stack State for Undo / Redo on active project
+  const [history, setHistory] = useState<WebsiteProject[]>([TEMPLATES[0].project]);
+  const [historyIndex, setHistoryIndex] = useState<number>(0);
+
+  const project = history[historyIndex];
+
+  const updateActiveProjectInList = (updatedProj: WebsiteProject) => {
+    const list = savedProjects.some(p => p.id === updatedProj.id)
+      ? savedProjects.map(p => p.id === updatedProj.id ? updatedProj : p)
+      : [updatedProj, ...savedProjects];
+    setSavedProjects(list);
+  };
+
+  const setProjectWithHistory = (newProject: WebsiteProject) => {
+    const updatedHistory = history.slice(0, historyIndex + 1);
+    updatedHistory.push(newProject);
+    setHistory(updatedHistory);
+    setHistoryIndex(updatedHistory.length - 1);
+    updateActiveProjectInList(newProject);
+  };
+
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      setHistoryIndex(historyIndex - 1);
+      showToast("Undone last action");
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      setHistoryIndex(historyIndex + 1);
+      showToast("Redone action");
+    }
+  };
+
+  // Keyboard shortcut listener for Ctrl+Z / Ctrl+Y
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
+        handleRedo();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [historyIndex, history]);
+
   const [deviceView, setDeviceView] = useState<"desktop" | "tablet" | "mobile">("desktop");
 
   // Asset Library State
@@ -31,10 +91,13 @@ export default function App() {
   const [showAiAssistant, setShowAiAssistant] = useState(false);
   const [showBusinessGenerator, setShowBusinessGenerator] = useState(false);
   const [showSeoAssistant, setShowSeoAssistant] = useState(false);
+  const [showSmartLayout, setShowSmartLayout] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showProjects, setShowProjects] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [previewTargetProject, setPreviewTargetProject] = useState<WebsiteProject | null>(null);
 
   const [auditResult, setAuditResult] = useState<{ score: number; feedback: string[] } | null>(null);
   const [auditing, setAuditing] = useState(false);
@@ -48,9 +111,10 @@ export default function App() {
   const activePage = project.pages.find((p) => p.id === project.activePageId) || project.pages[0];
 
   const updateActivePageSections = (newSections: WebsiteSection[]) => {
-    setProject({
+    const updatedPages = project.pages.map((p) => p.id === activePage.id ? { ...p, sections: newSections } : p);
+    setProjectWithHistory({
       ...project,
-      pages: project.pages.map((p) => p.id === activePage.id ? { ...p, sections: newSections } : p),
+      pages: updatedPages,
     });
   };
 
@@ -196,7 +260,7 @@ export default function App() {
   };
 
   const handleUpdateTheme = (newTheme: Partial<ThemeSettings>) => {
-    setProject({
+    setProjectWithHistory({
       ...project,
       theme: { ...project.theme, ...newTheme },
     });
@@ -210,13 +274,22 @@ export default function App() {
         deviceView={deviceView}
         setDeviceView={setDeviceView}
         onOpenTemplates={() => setShowTemplates(true)}
+        onOpenProjects={() => setShowProjects(true)}
         onOpenAiAssistant={() => setShowAiAssistant(true)}
         onOpenBusinessGenerator={() => setShowBusinessGenerator(true)}
         onOpenSeoAssistant={() => setShowSeoAssistant(true)}
+        onOpenSmartLayout={() => setShowSmartLayout(true)}
         onOpenExport={() => setShowExport(true)}
         onOpenPublish={() => setShowPublish(true)}
-        onOpenPreview={() => setShowPreview(true)}
+        onOpenPreview={() => {
+          setPreviewTargetProject(project);
+          setShowPreview(true);
+        }}
         onRunAudit={handleRunAudit}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        canUndo={historyIndex > 0}
+        canRedo={historyIndex < history.length - 1}
       />
 
       {/* Main Workspace */}
@@ -269,7 +342,9 @@ export default function App() {
         <BusinessGeneratorModal
           onClose={() => setShowBusinessGenerator(false)}
           onApplyGeneratedProject={(newProj) => {
-            setProject(newProj);
+            setHistory([newProj]);
+            setHistoryIndex(0);
+            updateActiveProjectInList(newProj);
             showToast("Generated full website from business description!");
           }}
         />
@@ -285,12 +360,47 @@ export default function App() {
         />
       )}
 
+      {showSmartLayout && (
+        <SmartLayoutModal
+          sections={activePage.sections}
+          onClose={() => setShowSmartLayout(false)}
+          onApplyLayout={(newSections) => {
+            updateActivePageSections(newSections);
+            showToast("AI Smart Layout applied successfully!");
+          }}
+        />
+      )}
+
       {showTemplates && (
         <TemplatesModal
           onClose={() => setShowTemplates(false)}
           onSelectTemplate={(newProj) => {
-            setProject(newProj);
+            setHistory([newProj]);
+            setHistoryIndex(0);
+            updateActiveProjectInList(newProj);
             showToast("Template loaded successfully!");
+          }}
+        />
+      )}
+
+      {showProjects && (
+        <ProjectsModal
+          projects={savedProjects}
+          currentProjectId={project.id}
+          onClose={() => setShowProjects(false)}
+          onSelectProject={(proj) => {
+            setHistory([proj]);
+            setHistoryIndex(0);
+            showToast(`Switched to project: ${proj.title}`);
+          }}
+          onPreviewProject={(proj) => {
+            setPreviewTargetProject(proj);
+            setShowPreview(true);
+          }}
+          onDeleteProject={(pid) => {
+            const filtered = savedProjects.filter(p => p.id !== pid);
+            setSavedProjects(filtered);
+            showToast("Project deleted from list");
           }}
         />
       )}
@@ -309,10 +419,13 @@ export default function App() {
         />
       )}
 
-      {showPreview && (
+      {showPreview && previewTargetProject && (
         <PreviewModal
-          project={project}
-          onClose={() => setShowPreview(false)}
+          project={previewTargetProject}
+          onClose={() => {
+            setShowPreview(false);
+            setPreviewTargetProject(null);
+          }}
         />
       )}
 

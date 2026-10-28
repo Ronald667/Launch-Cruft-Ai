@@ -16,7 +16,10 @@ export const TemplatesModal: React.FC<TemplatesModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
       <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl text-white flex flex-col max-h-[85vh]">
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-800 bg-slate-950/50">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
+            <button onClick={onClose} className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold">
+              ← Back
+            </button>
             <div className="w-9 h-9 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center">
               <Sparkles className="w-4 h-4" />
             </div>
